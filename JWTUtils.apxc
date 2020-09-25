@@ -1,0 +1,103 @@
+public class JWTUtils {
+  
+/*  
+// JWT Flow Helper Doc:
+ https://help.salesforce.com/articleView?id=remoteaccess_oauth_jwt_flow.htm&type=5
+
+// Certificate creation: 
+https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_key_and_cert.htm
+
+*/
+
+
+
+public static String response{set;get;}
+    
+    public static String retrievePKContent()
+    {
+        ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='server' ORDER BY Title LIMIT 1];
+        String keyContents = base64Content.VersionData.tostring();
+        keyContents = keyContents.replace('-----BEGIN RSA PRIVATE KEY-----', '');
+        keyContents = keyContents.replace('-----END RSA PRIVATE KEY-----', '');
+        keyContents = keyContents.replace('\n', '');
+        
+        return keyContents;
+    }
+    public static String createHeader(String algName)
+    {
+        JSONGenerator header = JSON.createGenerator(false);
+        header.writeStartObject();
+        header.writeStringField('alg', algName);
+        header.writeEndObject();
+        String encodedHeader = base64URLencode(Blob.valueOf(header.getAsString()));
+        return encodedHeader;
+    }
+    public static String base64URLencode(Blob input){ 
+        String output = encodingUtil.base64Encode(input);
+        output = output.replace('+', '-');
+        output = output.replace('/', '_');
+        while ( output.endsWith('=')){
+            output = output.subString(0,output.length()-1);
+        }
+        return output;
+    }
+    public static String generateJsonBody()
+    {
+        JSONGenerator body = JSON.createGenerator(false);
+        body.writeStartObject();
+        body.writeStringField('iss', '3MVG9G9pzCUSkzZtdokuRcICTn.iWu6R5TdFvidHCwbu6xRju6fo6CY6Q_79WHOqNlGPelPITCwy8yWGsoViB');
+        body.writeStringField('sub','kkb@flyingdutchman.org');
+        body.writeStringField('aud','https://login.salesforce.com');
+        //  Long rightNow = (dateTime.now().getTime()/1000);
+        DateTime rightNow = System.now();
+        rightNow = rightNow.addMinutes(3);
+        Long expiry = rightNow.getTime();
+        //   body.writeNumberField('iat', rightNow);
+        // expiry time has been set to 900 by default hardcoding
+        body.writeNumberField('exp', expiry);
+        System.debug('After 3 mins - '+expiry);
+        body.writeEndObject();
+        
+        String encodeJWTClaims = base64URLencode(Blob.valueOf(body.getAsString()));        
+        return encodeJWTClaims;
+    }
+    
+    public static String combineJWTHeader_Claimset(string encoded_JWT_Header,String encoded_JWT_Claims_Set)
+    {
+        return encoded_JWT_Header + '.' + encoded_JWT_Claims_Set;
+    }
+    
+    public static String signPkey(String jwt)
+    {
+        Blob privateKey = EncodingUtil.base64Decode(retrievePKContent());
+        Blob signature = Crypto.sign('rsa-sha256', Blob.valueOf(jwt), privateKey);
+        jwt += '.' + base64URLencode(signature);  
+        return jwt;
+    }
+    
+    public static void fetchToken(string jwtValue){
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('https://login.salesforce.com/services/oauth2/token?grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion='+jwtValue);
+        system.debug('URL ---- '+'https://login.salesforce.com/services/oauth2/token?grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion='+jwtValue);
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/x-www-form-urlencoded');
+        
+        // Create a new http object to send the request object
+        // A response object is generated as a result of the request  
+        
+        Http http = new Http();
+        HTTPResponse res = http.send(req);
+        System.debug(res.getBody());
+        response = res.getBody();
+    }
+    
+    public void doInit()
+    {
+        String jwt = JWTUtils.signPkey(JWTUtils.combineJWTHeader_Claimset(JWTUtils.createHeader('RS256'),
+                                                                          JWTUtils.generateJsonBody()));
+        
+        JWTUtils.fetchToken(jwt);
+
+    }
+    
+}
