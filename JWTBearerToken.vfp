@@ -1,0 +1,63 @@
+<apex:page standardStylesheets="false" lightningStylesheets="true" controller="JWTUtils" sidebar="false" showHeader="false" >
+    <apex:slds />
+    
+    <div style="margin:auto;width:80%;">
+        <div class="slds-page-header">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span class="slds-page-header__title slds-truncate" title="JWT Bearer Token">JWT Bearer Token Application</span>
+                                    </h1>
+                                </div>
+                            </div>
+                            <p class="slds-page-header__name-meta">Obtain JWTBearer token flow against "https://oceans11-dev-ed.my.salesforce.com" Org.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <apex:form >
+            
+            
+            <article class="slds-card">
+                <div class="slds-card__header slds-grid slds-assistive-text">
+                </div>
+                <div class="slds-card__body slds-card__body_inner">  
+                    
+                    <dl class="slds-list_horizontal slds-wrap">
+                        
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="First Label">Access Token :</dt>
+                        <dd class="slds-item_detail slds-truncate" title="Description for first label"> {!access_token}</dd>
+                        
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Second Label">scope :</dt>
+                        <dd class="slds-item_detail slds-truncate" title="Description for second label">{!scope}</dd>
+                        
+                        
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Second Label">instance_url :</dt>
+                        <dd class="slds-item_detail slds-truncate" title="Description for second label">{!instance_url}</dd>
+                        
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Second Label">id :</dt>
+                        <dd class="slds-item_detail slds-truncate" title="Description for second label">{!id}</dd>
+                        
+                        <dt class="slds-item_label slds-text-color_weak slds-truncate" title="Second Label">token_type :</dt>
+                        <dd class="slds-item_detail slds-truncate" title="Description for second label">{!token_type}</dd>
+                        
+                    </dl>                    
+                    
+                    
+                </div>
+                <footer class="slds-card__footer">
+                    <apex:commandButton styleClass="slds-button slds-button_outline-brand" action="{!doInit}" value="Fetch JWT Token" />  
+                </footer>
+            </article>
+            
+            
+        </apex:form>
+    </div>
+    
+</apex:page>
