@@ -1,22 +1,31 @@
 public class JWTUtils {
-  
-/*  
+    
+    /*  
 // JWT Flow Helper Doc:
- https://help.salesforce.com/articleView?id=remoteaccess_oauth_jwt_flow.htm&type=5
+https://help.salesforce.com/articleView?id=remoteaccess_oauth_jwt_flow.htm&type=5
 
 // Certificate creation: 
 https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_key_and_cert.htm
 
 */
-
-
-
-public static String response{set;get;}
     
+    
+    
+    public static String response{set;get;}
+    
+    // these values can be binded on the vf
+    public static String access_token{set;get;}
+    public static String scope{set;get;}
+    public static String instance_url{set;get;}
+    public static String id{set;get;}
+    public static String token_type{set;get;}
+    
+
     public static String retrievePKContent()
     {
-          ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='server' ORDER BY Title LIMIT 1];
-
+        //        ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='PrivateKey(new-Dec172020)' ORDER BY Title LIMIT 1];
+        ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='server' ORDER BY Title LIMIT 1];
+        
         String keyContents = base64Content.VersionData.tostring();
         System.debug(keyContents);
         keyContents = keyContents.replace('-----BEGIN RSA PRIVATE KEY-----', '');
@@ -49,15 +58,15 @@ public static String response{set;get;}
         body.writeStartObject();
         // iss - OAuth client_id
         body.writeStringField('iss', '3MVG9G9pzCUSkzZtdokuRcICTn.iWu6R5TdFvidHCwbu6xRju6fo6CY6Q_79WHOqNlGPelPITCwy8yWGsoViB');
-        body.writeStringField('sub','kkb@flyingdutchman.org'); // targetorg username
+        body.writeStringField('sub','kkb@flyingdutchman.org');
         body.writeStringField('aud','https://login.salesforce.com');
-     
+        
         
         DateTime rightNow = System.now();
         rightNow = rightNow.addMinutes(3);
         Long expiry = rightNow.getTime();
-       
- 
+        
+        
         
         body.writeNumberField('exp', expiry);
         System.debug('After 3 mins - '+expiry);
@@ -89,14 +98,42 @@ public static String response{set;get;}
         
         // Create a new http object to send the request object
         // A response object is generated as a result of the request  
-    
+        
         Http http = new Http();
         HTTPResponse res = http.send(req);
         System.debug(res.getBody());
         response = res.getBody();
         System.debug('response - '+response);
+        
         System.debug(res);
-
+        
+        
+        JSONParser parser = JSON.createParser(response);
+        while (parser.nextToken() != null) {
+            // Advance to the start object marker to
+            //  find next invoice statement object.
+            if (parser.getCurrentToken() == JSONToken.START_OBJECT) {
+                // Read entire invoice object, including its array of line items.
+                JWTResponse jwtr = (JWTResponse)parser.readValueAs(JWTResponse.class);
+                access_token = '----'+jwtr.access_token+'----';
+                scope = jwtr.scope;
+                instance_url = jwtr.instance_url;
+                id = jwtr.id;
+                token_type = jwtr.token_type;
+                
+                
+                
+                
+                parser.skipChildren();
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
     }
     
     public static void doInit()
@@ -105,7 +142,20 @@ public static String response{set;get;}
                                                                           JWTUtils.generateJsonBody()));
         System.debug('---'+jwt+'---');
         JWTUtils.fetchToken(jwt);
-
+        
     }
+    
+    
+    public class JWTResponse {
+        public String access_token;
+        public String scope;
+        public String instance_url;
+        public String id;
+        public String token_type;
+        
+        
+        
+    }  
+    
     
 }
