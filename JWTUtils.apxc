@@ -15,8 +15,10 @@ public static String response{set;get;}
     
     public static String retrievePKContent()
     {
-        ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='server' ORDER BY Title LIMIT 1];
+          ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='server' ORDER BY Title LIMIT 1];
+
         String keyContents = base64Content.VersionData.tostring();
+        System.debug(keyContents);
         keyContents = keyContents.replace('-----BEGIN RSA PRIVATE KEY-----', '');
         keyContents = keyContents.replace('-----END RSA PRIVATE KEY-----', '');
         keyContents = keyContents.replace('\n', '');
@@ -45,15 +47,18 @@ public static String response{set;get;}
     {
         JSONGenerator body = JSON.createGenerator(false);
         body.writeStartObject();
+        // iss - OAuth client_id
         body.writeStringField('iss', '3MVG9G9pzCUSkzZtdokuRcICTn.iWu6R5TdFvidHCwbu6xRju6fo6CY6Q_79WHOqNlGPelPITCwy8yWGsoViB');
-        body.writeStringField('sub','kkb@flyingdutchman.org');
+        body.writeStringField('sub','kkb@flyingdutchman.org'); // targetorg username
         body.writeStringField('aud','https://login.salesforce.com');
-        //  Long rightNow = (dateTime.now().getTime()/1000);
+     
+        
         DateTime rightNow = System.now();
         rightNow = rightNow.addMinutes(3);
         Long expiry = rightNow.getTime();
-        //   body.writeNumberField('iat', rightNow);
-        // expiry time has been set to 900 by default hardcoding
+       
+ 
+        
         body.writeNumberField('exp', expiry);
         System.debug('After 3 mins - '+expiry);
         body.writeEndObject();
@@ -84,18 +89,21 @@ public static String response{set;get;}
         
         // Create a new http object to send the request object
         // A response object is generated as a result of the request  
-        
+    
         Http http = new Http();
         HTTPResponse res = http.send(req);
         System.debug(res.getBody());
         response = res.getBody();
+        System.debug('response - '+response);
+        System.debug(res);
+
     }
     
-    public void doInit()
+    public static void doInit()
     {
         String jwt = JWTUtils.signPkey(JWTUtils.combineJWTHeader_Claimset(JWTUtils.createHeader('RS256'),
                                                                           JWTUtils.generateJsonBody()));
-        
+        System.debug('---'+jwt+'---');
         JWTUtils.fetchToken(jwt);
 
     }
