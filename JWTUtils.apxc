@@ -21,6 +21,7 @@ https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_de
     public static String token_type{set;get;}
     
 
+// This method will fetch the certificate  contents. 
     public static String retrievePKContent()
     {
         //        ContentVersion base64Content = [SELECT Title, VersionData FROM ContentVersion where Title='PrivateKey(new-Dec172020)' ORDER BY Title LIMIT 1];
@@ -57,9 +58,9 @@ https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_de
         JSONGenerator body = JSON.createGenerator(false);
         body.writeStartObject();
         // iss - OAuth client_id
-        body.writeStringField('iss', '3MVG9aCUSsdaskzZadasdsadjldljadjasjldasljdajldaslkjdalkjWGsoViB');
-        body.writeStringField('sub','kkb@flyingdutchman.org');
-        body.writeStringField('aud','https://login.salesforce.com');
+        body.writeStringField('iss', '<CONNECTED APP CONSUMER KEY>');
+        body.writeStringField('sub','<YOUR_USERNAME>');
+        body.writeStringField('aud','https://login(or)test.salesforce.com');
         
         
         DateTime rightNow = System.now();
